@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'product.g.dart';
@@ -18,6 +19,12 @@ class Product with ChangeNotifier {
       @required this.imageUrl,
       this.isFavorite = false});
   void toggleFavoriteStatus() {
+    Dio().patch(
+        'https://flutter-shop-a2af9-default-rtdb.firebaseio.com/products/${this.id}.json',
+        data: {'isFavorite': !isFavorite}).catchError((_) {
+      isFavorite = !isFavorite;
+      notifyListeners();
+    });
     isFavorite = !isFavorite;
     notifyListeners();
   }

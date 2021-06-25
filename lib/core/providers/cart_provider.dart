@@ -1,12 +1,18 @@
 import 'package:flutter/cupertino.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'product.dart';
+part 'cart_provider.g.dart';
 
+@JsonSerializable()
 class CartItem {
   final String id;
   final String title;
   final int quatity;
   final double price;
   CartItem({this.id, this.title, this.quatity, this.price});
+  static fromJson(Map<String, dynamic> json) => _$CartItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CartItemToJson(this);
 }
 
 class CartProvider with ChangeNotifier {

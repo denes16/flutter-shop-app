@@ -78,7 +78,18 @@ class ProductsProvider with ChangeNotifier {
   }
 
   deleteProduct(String id) {
+    final _url =
+        'https://flutter-shop-a2af9-default-rtdb.firebaseio.com/products/$id.json';
+    final productIndex = _allProducts.indexWhere((element) => id == element.id);
+    final product = _allProducts.firstWhere((element) => id == element.id);
+
     this._allProducts.removeWhere((element) => element.id == id);
+    Dio().delete(_url).catchError((e) {
+      print(_url);
+      print(e);
+      _allProducts.insert(productIndex, product);
+      notifyListeners();
+    });
     notifyListeners();
   }
 

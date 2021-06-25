@@ -43,13 +43,7 @@ class CartScreen extends StatelessWidget {
                   ),
                   Expanded(
                       child: Center(
-                    child: TextButton(
-                        onPressed: () {
-                          Provider.of<OrdersProvider>(context, listen: false)
-                              .addOrder(_cartProvider.items.values.toList());
-                          _cartProvider.clear();
-                        },
-                        child: Text('ORDER NOW')),
+                    child: SubmitOrderButton(cartProvider: _cartProvider),
                   ))
                 ],
               ),
@@ -63,5 +57,36 @@ class CartScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class SubmitOrderButton extends StatefulWidget {
+  const SubmitOrderButton({
+    @required CartProvider cartProvider,
+  }) : _cartProvider = cartProvider;
+
+  final CartProvider _cartProvider;
+
+  @override
+  _SubmitOrderButtonState createState() => _SubmitOrderButtonState();
+}
+
+class _SubmitOrderButtonState extends State<SubmitOrderButton> {
+  var _isLoading = false;
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+        onPressed: widget._cartProvider.totalAmount == 0 || _isLoading
+            ? null
+            : () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                await Provider.of<OrdersProvider>(context, listen: false)
+                    .addOrder(widget._cartProvider.items.values.toList());
+                _isLoading = false;
+                widget._cartProvider.clear();
+              },
+        child: _isLoading ? CircularProgressIndicator() : Text('ORDER NOW'));
   }
 }
