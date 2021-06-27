@@ -14,8 +14,21 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
+  var _isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<OrdersProvider>(context, listen: false)
+        .fetchAndSetOrders()
+        .then((value) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
   var _expandedOrderItemIndex = -1;
-  isExpanded(int index) {
+  bool isExpanded(int index) {
     return _expandedOrderItemIndex == -1
         ? false
         : _expandedOrderItemIndex == index;
@@ -24,37 +37,42 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final ordersProvider = Provider.of<OrdersProvider>(context);
-    print(isExpanded(0));
     return Scaffold(
       appBar: AppBar(
         title: Text('My orders'),
       ),
       drawer: MainDrawer(),
-      body: Column(
-        children: [
-          ExpansionPanelList(
-            children: ordersProvider.orders
-                .asMap()
-                .entries
-                .map((e) => ExpansionPanel(
-                    headerBuilder: (_, __) => OrderItemHeader(e.value),
-                    body: OrderItemBody(e.value),
-                    isExpanded: isExpanded(e.key)))
-                .toList(),
-            expansionCallback: (i, value) {
-              if (!value) {
-                setState(() {
-                  _expandedOrderItemIndex = i;
-                });
-              } else {
-                setState(() {
-                  _expandedOrderItemIndex = -1;
-                });
-              }
-            },
-          )
-        ],
-      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator.adaptive())
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ExpansionPanelList(
+                    children: ordersProvider.orders
+                        .asMap()
+                        .entries
+                        .map((e) => ExpansionPanel(
+                            canTapOnHeader: true,
+                            headerBuilder: (_, __) => OrderItemHeader(e.value),
+                            body: OrderItemBody(e.value),
+                            isExpanded: isExpanded(e.key)))
+                        .toList(),
+                    expansionCallback: (i, value) {
+                      if (!value) {
+                        setState(() {
+                          _expandedOrderItemIndex = i;
+                        });
+                      } else {
+                        setState(() {
+                          _expandedOrderItemIndex = -1;
+                        });
+                      }
+                    },
+                  ),
+                )
+              ],
+            ),
     );
   }
 }

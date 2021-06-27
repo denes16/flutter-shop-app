@@ -10,6 +10,7 @@ part 'orders_provider.g.dart';
 class OrderItem {
   final String id;
   final double amount;
+  @JsonKey(required: true, defaultValue: [])
   final List<CartItem> products;
   final DateTime dateTime;
   OrderItem(
@@ -18,7 +19,8 @@ class OrderItem {
       @required this.products,
       @required this.dateTime});
 
-  static fromJson(Map<String, dynamic> json) => _$OrderItemFromJson(json);
+  factory OrderItem.fromJson(Map<String, dynamic> json) =>
+      _$OrderItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderItemToJson(this);
 }
@@ -27,6 +29,23 @@ class OrdersProvider with ChangeNotifier {
   List<OrderItem> _orders = [];
   List<OrderItem> get orders {
     return [..._orders];
+  }
+
+  Future<void> fetchAndSetOrders() async {
+    try {
+      final response = await Dio().get(
+          'https://flutter-shop-a2af9-default-rtdb.firebaseio.com/orders.json');
+      final List<OrderItem> newOrders = [];
+      for (var item
+          in ((response.data ?? {}) as Map<String, dynamic>).entries) {
+        final newOrder = OrderItem.fromJson({...item.value, 'id': item.key});
+        newOrders.add(newOrder);
+      }
+      _orders = newOrders.reversed.toList();
+      notifyListeners();
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> addOrder(List<CartItem> cartProducts) async {
